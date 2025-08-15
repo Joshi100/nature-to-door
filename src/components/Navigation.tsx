@@ -3,15 +3,27 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/ui/logo";
 import { Menu, X } from "lucide-react";
 
-const Navigation = () => {
+interface NavigationProps {
+  activeSection?: string;
+  onSectionChange?: (section: string) => void;
+}
+
+const Navigation = ({ activeSection = "home", onSectionChange }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { label: "Home", href: "#home" },
-    { label: "Explore", href: "#explore" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", href: "home" },
+    { label: "Explore", href: "explore" },
+    { label: "About", href: "about" },
+    { label: "Contact", href: "contact" },
   ];
+
+  const handleNavClick = (section: string) => {
+    if (onSectionChange) {
+      onSectionChange(section);
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -23,19 +35,27 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <a
+              <button
                 key={item.label}
-                href={item.href}
-                className="text-foreground hover:text-primary transition-nature font-medium"
+                onClick={() => handleNavClick(item.href)}
+                className={`text-foreground hover:text-primary transition-nature font-medium pb-1 border-b-2 ${
+                  activeSection === item.href 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent'
+                }`}
               >
                 {item.label}
-              </a>
+              </button>
             ))}
           </div>
 
           {/* Desktop Login Button */}
           <div className="hidden md:block">
-            <Button variant="hero" size="sm">
+            <Button 
+              variant="hero" 
+              size="sm"
+              onClick={() => handleNavClick('login')}
+            >
               Login
             </Button>
           </div>
@@ -56,17 +76,23 @@ const Navigation = () => {
           <div className="md:hidden py-4 border-t border-border bg-background/95 backdrop-blur-lg">
             <div className="flex flex-col space-y-4">
               {navItems.map((item) => (
-                <a
+                <button
                   key={item.label}
-                  href={item.href}
-                  className="text-foreground hover:text-primary transition-nature font-medium px-4 py-2"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => handleNavClick(item.href)}
+                  className={`text-foreground hover:text-primary transition-nature font-medium px-4 py-2 text-left ${
+                    activeSection === item.href ? 'text-primary' : ''
+                  }`}
                 >
                   {item.label}
-                </a>
+                </button>
               ))}
               <div className="px-4">
-                <Button variant="hero" size="sm" className="w-full">
+                <Button 
+                  variant="hero" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => handleNavClick('login')}
+                >
                   Login
                 </Button>
               </div>

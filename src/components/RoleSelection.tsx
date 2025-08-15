@@ -51,9 +51,12 @@ const RoleSelection = () => {
                   <span className="text-muted-foreground">Track product availability</span>
                 </div>
               </div>
-              <Button variant="hero" className="w-full group">
+              <Button 
+                size="lg" 
+                variant="producer"
+                className="w-full"
+              >
                 Join as Producer
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </CardContent>
           </Card>
