@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
+import BackButton from "@/components/BackButton";
 import LandingPage from "@/components/LandingPage";
 import HomeSection from "@/components/HomeSection";
 import AboutSection from "@/components/AboutSection";
@@ -31,12 +32,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {activeSection !== "landing" && (
-        <Navigation 
-          activeSection={activeSection} 
-          onSectionChange={setActiveSection} 
-        />
-      )}
+      <Navigation 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+      />
+      <BackButton 
+        currentSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
       {renderSection()}
     </div>
   );

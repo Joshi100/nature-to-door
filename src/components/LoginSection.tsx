@@ -10,6 +10,7 @@ const LoginSection = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isSignup, setIsSignup] = useState(false);
   const [userType, setUserType] = useState<'customer' | 'producer' | null>(null);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +29,81 @@ const LoginSection = () => {
     alert("Phone authentication requires Supabase integration.");
   };
 
+  // Show role selection for login
+  if (showRoleSelection && isLogin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-accent py-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+                Login to RevoM
+              </h1>
+              <p className="text-xl text-muted-foreground">
+                Choose your role to continue
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Customer Login */}
+              <Card className="shadow-nature hover-lift cursor-pointer transition-nature group" onClick={() => {
+                setUserType('customer');
+                setShowRoleSelection(false);
+              }}>
+                <CardContent className="p-8 text-center">
+                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-nature">
+                    <span className="text-4xl">🛒</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-4">
+                    Login as Customer
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Access your customer account to explore and purchase products
+                  </p>
+                  <Button variant="outline" size="lg" className="w-full">
+                    Customer Login
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Producer Login */}
+              <Card className="shadow-nature hover-lift cursor-pointer transition-nature group" onClick={() => {
+                setUserType('producer');
+                setShowRoleSelection(false);
+              }}>
+                <CardContent className="p-8 text-center">
+                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-nature">
+                    <span className="text-4xl">🌱</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-4">
+                    Login as Producer
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Access your producer dashboard to manage your products
+                  </p>
+                  <Button variant="producer" size="lg" className="w-full">
+                    Producer Login
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center mt-8">
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowRoleSelection(false)}
+                className="text-primary hover:text-primary"
+              >
+                Back
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show role selection for signup
   if (isSignup && !userType) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-accent py-20">
@@ -82,13 +158,79 @@ const LoginSection = () => {
               <div className="text-center mt-8">
                 <Button 
                   variant="ghost" 
-                  onClick={() => setIsSignup(false)}
+                  onClick={() => {
+                    setIsSignup(false);
+                    setShowRoleSelection(true);
+                  }}
                   className="text-primary hover:text-primary"
                 >
                   Back to Login
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default login view - show role selection first
+  if (isLogin && !userType && !showRoleSelection) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-accent py-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-md mx-auto">
+            <Card className="shadow-nature">
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-bold text-foreground mb-2">
+                    Welcome to RevoM
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Choose your login option
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={() => setShowRoleSelection(true)}
+                  >
+                    <span className="mr-2">🛒</span>
+                    Login as Customer
+                  </Button>
+                  
+                  <Button 
+                    variant="producer" 
+                    size="lg" 
+                    className="w-full"
+                    onClick={() => setShowRoleSelection(true)}
+                  >
+                    <span className="mr-2">🌱</span>
+                    Login as Producer
+                  </Button>
+                </div>
+
+                <div className="text-center mt-8">
+                  <p className="text-muted-foreground mb-4">
+                    New to RevoM, or don't have a RevoM account?
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsSignup(true)}
+                    className="text-primary hover:text-primary"
+                  >
+                    Sign up
+                  </Button>
+                </div>
+
+                <p className="text-xs text-muted-foreground text-center mt-6">
+                  Note: Full authentication requires Supabase integration for secure user management.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -103,7 +245,7 @@ const LoginSection = () => {
             <CardContent className="p-8">
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-foreground mb-2">
-                  {isSignup ? `Sign Up as ${userType}` : 'Welcome Back'}
+                  {isSignup ? `Sign Up as ${userType}` : `Welcome Back ${userType ? `(${userType})` : ''}`}
                 </h1>
                 <p className="text-muted-foreground">
                   {isSignup ? 'Create your account' : 'Login to your account'}
@@ -246,6 +388,7 @@ const LoginSection = () => {
                       onClick={() => {
                         setIsSignup(false);
                         setUserType(null);
+                        setShowRoleSelection(true);
                       }}
                       className="text-primary hover:text-primary"
                     >
