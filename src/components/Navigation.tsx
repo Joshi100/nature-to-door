@@ -8,7 +8,7 @@ interface NavigationProps {
   onSectionChange?: (section: string) => void;
 }
 
-const Navigation = ({ activeSection = "home", onSectionChange }: NavigationProps) => {
+const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
@@ -26,7 +26,7 @@ const Navigation = ({ activeSection = "home", onSectionChange }: NavigationProps
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border shadow-lg">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -38,7 +38,7 @@ const Navigation = ({ activeSection = "home", onSectionChange }: NavigationProps
               <button
                 key={item.label}
                 onClick={() => handleNavClick(item.href)}
-                className={`text-foreground hover:text-primary transition-nature font-medium pb-1 border-b-2 ${
+                className={`text-card-foreground hover:text-primary transition-nature font-medium pb-1 border-b-2 ${
                   activeSection === item.href 
                     ? 'border-primary text-primary' 
                     : 'border-transparent'
@@ -73,13 +73,13 @@ const Navigation = ({ activeSection = "home", onSectionChange }: NavigationProps
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border bg-background/95 backdrop-blur-lg">
+          <div className="md:hidden py-4 border-t border-border bg-card/95 backdrop-blur-lg">
             <div className="flex flex-col space-y-4">
               {navItems.map((item) => (
                 <button
                   key={item.label}
                   onClick={() => handleNavClick(item.href)}
-                  className={`text-foreground hover:text-primary transition-nature font-medium px-4 py-2 text-left ${
+                  className={`text-card-foreground hover:text-primary transition-nature font-medium px-4 py-2 text-left ${
                     activeSection === item.href ? 'text-primary' : ''
                   }`}
                 >
