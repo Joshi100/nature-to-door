@@ -6,7 +6,7 @@ import HomeSection from "@/components/HomeSection";
 import AboutSection from "@/components/AboutSection";
 import ContactSection from "@/components/ContactSection";
 import ExploreSection from "@/components/ExploreSection";
-import LoginSection from "@/components/LoginSection";
+import AuthSection from "@/components/AuthSection";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("landing");
@@ -24,7 +24,7 @@ const Index = () => {
       case "contact":
         return <ContactSection />;
       case "login":
-        return <LoginSection />;
+        return <AuthSection onBack={() => setActiveSection('landing')} />;
       default:
         return <LandingPage onSectionChange={setActiveSection} />;
     }

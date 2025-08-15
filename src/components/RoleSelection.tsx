@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Sprout, ArrowRight } from "lucide-react";
+import { ShoppingBag, Sprout, Truck, ArrowRight } from "lucide-react";
 
 const RoleSelection = () => {
   return (
@@ -19,7 +19,7 @@ const RoleSelection = () => {
         </div>
 
         {/* Role Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Producer Card */}
           <Card className="relative overflow-hidden hover-lift group cursor-pointer border-2 hover:border-primary/50">
             <div className="absolute inset-0 forest-gradient opacity-5 group-hover:opacity-10 transition-nature"></div>
@@ -61,11 +61,6 @@ const RoleSelection = () => {
             </CardContent>
           </Card>
 
-          {/* Separator */}
-          <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-            <Separator orientation="vertical" className="h-64 w-px bg-border" />
-          </div>
-
           {/* Customer Card */}
           <Card className="relative overflow-hidden hover-lift group cursor-pointer border-2 hover:border-primary/50">
             <div className="absolute inset-0 mountain-gradient opacity-5 group-hover:opacity-10 transition-nature"></div>
@@ -100,6 +95,47 @@ const RoleSelection = () => {
               <Button variant="nature" className="w-full group">
                 Start Shopping
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Transport Card */}
+          <Card className="relative overflow-hidden hover-lift group cursor-pointer border-2 hover:border-primary/50">
+            <div className="absolute inset-0 hero-gradient opacity-5 group-hover:opacity-10 transition-nature"></div>
+            <CardHeader className="text-center pb-6">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-nature">
+                <Truck className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl md:text-3xl font-bold">Transport</CardTitle>
+              <CardDescription className="text-lg">
+                Bridge producers and customers through logistics
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-muted-foreground">Access producer pickup locations</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-muted-foreground">Optimize delivery routes efficiently</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-muted-foreground">Earn from transport services</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span className="text-muted-foreground">Support local supply chain</span>
+                </div>
+              </div>
+              <Button 
+                size="lg" 
+                variant="default"
+                className="w-full"
+              >
+                Join as Transport
               </Button>
             </CardContent>
           </Card>
