@@ -14,7 +14,242 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          created_at: string | null
+          delivery_address: Json | null
+          id: string
+          preferences: Json | null
+          profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_address?: Json | null
+          id?: string
+          preferences?: Json | null
+          profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_address?: Json | null
+          id?: string
+          preferences?: Json | null
+          profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      producers: {
+        Row: {
+          business_hours: Json | null
+          business_name: string | null
+          business_type: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          pickup_address: string | null
+          pickup_location: Json | null
+          profile_id: string
+          updated_at: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          business_hours?: Json | null
+          business_name?: string | null
+          business_type?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          pickup_address?: string | null
+          pickup_location?: Json | null
+          profile_id: string
+          updated_at?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          business_hours?: Json | null
+          business_name?: string | null
+          business_type?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          pickup_address?: string | null
+          pickup_location?: Json | null
+          profile_id?: string
+          updated_at?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          available_for_pickup: boolean | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          expiry_date: string | null
+          harvest_date: string | null
+          id: string
+          images: Json | null
+          name: string
+          organic_certified: boolean | null
+          pickup_instructions: string | null
+          price: number | null
+          producer_id: string
+          stock_quantity: number | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          available_for_pickup?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          expiry_date?: string | null
+          harvest_date?: string | null
+          id?: string
+          images?: Json | null
+          name: string
+          organic_certified?: boolean | null
+          pickup_instructions?: string | null
+          price?: number | null
+          producer_id: string
+          stock_quantity?: number | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          available_for_pickup?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          expiry_date?: string | null
+          harvest_date?: string | null
+          id?: string
+          images?: Json | null
+          name?: string
+          organic_certified?: boolean | null
+          pickup_instructions?: string | null
+          price?: number | null
+          producer_id?: string
+          stock_quantity?: number | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "producers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transport: {
+        Row: {
+          availability_status: string | null
+          coverage_areas: Json | null
+          created_at: string | null
+          id: string
+          license_number: string | null
+          profile_id: string
+          updated_at: string | null
+          vehicle_capacity: number | null
+          vehicle_type: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          availability_status?: string | null
+          coverage_areas?: Json | null
+          created_at?: string | null
+          id?: string
+          license_number?: string | null
+          profile_id: string
+          updated_at?: string | null
+          vehicle_capacity?: number | null
+          vehicle_type?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          availability_status?: string | null
+          coverage_areas?: Json | null
+          created_at?: string | null
+          id?: string
+          license_number?: string | null
+          profile_id?: string
+          updated_at?: string | null
+          vehicle_capacity?: number | null
+          vehicle_type?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +258,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "producer" | "customer" | "transport"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +385,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["producer", "customer", "transport"],
+    },
   },
 } as const
