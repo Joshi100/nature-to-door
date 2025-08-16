@@ -24,7 +24,7 @@ const HomeSection = () => {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-background to-background/95 pt-20 pb-12">
+    <section className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-background to-background/95 py-8 sm:py-12">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">

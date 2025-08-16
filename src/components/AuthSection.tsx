@@ -233,38 +233,33 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   // Role selection view
   if (!selectedRole) {
     return (
-      <div className="min-h-screen bg-mountain-gradient flex items-center justify-center p-4">
-        <Card className="w-full max-w-4xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">Choose Your Role</CardTitle>
-            <CardDescription>
+      <div className="min-h-[calc(100vh-4rem)] bg-mountain-gradient flex items-center justify-center p-4 py-8">
+        <Card className="w-full max-w-4xl mx-auto">
+          <CardHeader className="text-center px-4 sm:px-6">
+            <CardTitle className="text-2xl sm:text-3xl font-bold">Choose Your Role</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Select how you'd like to participate in the RevoM community
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <CardContent className="px-4 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {(['producer', 'customer', 'transport'] as UserRole[]).map((role) => (
                 <Card 
                   key={role}
                   className="cursor-pointer border-2 hover:border-primary transition-colors hover-lift"
                   onClick={() => setSelectedRole(role)}
                 >
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CardContent className="p-4 sm:p-6 text-center">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                       {getRoleIcon(role)}
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 capitalize">{role}</h3>
-                    <p className="text-muted-foreground text-sm">
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 capitalize">{role}</h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm">
                       {getRoleDescription(role)}
                     </p>
                   </CardContent>
                 </Card>
               ))}
-            </div>
-            <div className="flex justify-center mt-8">
-              <Button variant="outline" onClick={onBack}>
-                Back to Home
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -274,26 +269,26 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
 
   // Main auth form
   return (
-    <div className="min-h-screen bg-mountain-gradient flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+    <div className="min-h-[calc(100vh-4rem)] bg-mountain-gradient flex items-center justify-center p-4 py-8">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center px-4 sm:px-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
             {getRoleIcon(selectedRole)}
           </div>
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-xl sm:text-2xl font-bold">
             {isSignup ? 'Sign Up' : 'Sign In'} as {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm sm:text-base">
             {getRoleDescription(selectedRole)}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={isSignup ? handleSignup : handleSignin} className="space-y-4">
+        <CardContent className="px-4 sm:px-6">
+          <form onSubmit={isSignup ? handleSignup : handleSignin} className="space-y-3 sm:space-y-4">
             {isSignup && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName" className="text-sm">First Name</Label>
                     <Input
                       id="firstName"
                       name="firstName"
@@ -301,10 +296,11 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                       value={formData.firstName}
                       onChange={handleInputChange}
                       required
+                      className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName" className="text-sm">Last Name</Label>
                     <Input
                       id="lastName"
                       name="lastName"
@@ -312,6 +308,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                       value={formData.lastName}
                       onChange={handleInputChange}
                       required
+                      className="mt-1"
                     />
                   </div>
                 </div>
@@ -319,7 +316,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
             )}
 
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -328,18 +325,19 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                 onChange={handleInputChange}
                 required
                 disabled={emailValidating}
+                className="mt-1"
               />
               {emailValidating && (
-                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                   Validating email...
                 </p>
               )}
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
+              <Label htmlFor="password" className="text-sm">Password</Label>
+              <div className="relative mt-1">
                 <Input
                   id="password"
                   name="password"
@@ -353,18 +351,18 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-0 top-0 h-full px-2 sm:px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                 </Button>
               </div>
             </div>
 
             {isSignup && (
               <div>
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
+                <Label htmlFor="confirmPassword" className="text-sm">Confirm Password</Label>
+                <div className="relative mt-1">
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -378,10 +376,10 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-2 sm:px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
                 </div>
               </div>
@@ -389,12 +387,12 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               disabled={isLoading || emailValidating}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
                   {isSignup ? 'Creating Account...' : 'Signing In...'}
                 </>
               ) : (
@@ -402,12 +400,13 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
               )}
             </Button>
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1 sm:space-y-2">
               <Button
                 type="button"
                 variant="link"
                 onClick={() => setIsSignup(!isSignup)}
                 disabled={isLoading}
+                className="text-xs sm:text-sm"
               >
                 {isSignup ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
               </Button>
@@ -418,6 +417,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                   variant="link"
                   onClick={() => setSelectedRole(null)}
                   disabled={isLoading}
+                  className="text-xs sm:text-sm"
                 >
                   Change Role
                 </Button>

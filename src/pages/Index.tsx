@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
-import BackButton from "@/components/BackButton";
 import LandingPage from "@/components/LandingPage";
 import HomeSection from "@/components/HomeSection";
 import AboutSection from "@/components/AboutSection";
@@ -36,11 +35,10 @@ const Index = () => {
         activeSection={activeSection} 
         onSectionChange={setActiveSection} 
       />
-      <BackButton 
-        currentSection={activeSection}
-        onSectionChange={setActiveSection}
-      />
-      {renderSection()}
+      {/* Content with proper top padding to avoid navbar overlap */}
+      <main className="pt-16">
+        {renderSection()}
+      </main>
     </div>
   );
 };
