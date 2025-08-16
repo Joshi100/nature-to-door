@@ -7,11 +7,7 @@ import villageImage1 from "@/assets/nepal-village-1.jpg";
 import villageImage2 from "@/assets/nepal-village-2.jpg";
 import villageImage3 from "@/assets/nepal-village-3.jpg";
 
-interface HeroSectionProps {
-  onSectionChange?: (section: string) => void;
-}
-
-const HeroSection = ({ onSectionChange }: HeroSectionProps) => {
+const HeroSection = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const villageImages = [
@@ -56,7 +52,6 @@ const HeroSection = ({ onSectionChange }: HeroSectionProps) => {
               size="lg" 
               variant="hero"
               className="text-lg px-8 py-6 shadow-2xl"
-              onClick={() => onSectionChange?.('explore')}
             >
               Start Exploring
             </Button>
@@ -64,7 +59,6 @@ const HeroSection = ({ onSectionChange }: HeroSectionProps) => {
               size="lg" 
               variant="producer"
               className="text-lg px-8 py-6 shadow-2xl"
-              onClick={() => onSectionChange?.('login')}
             >
               Join as Producer
             </Button>

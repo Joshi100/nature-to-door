@@ -1,23 +1,27 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/ui/logo";
 import { Menu, X } from "lucide-react";
 
-const Navigation = () => {
+interface NavigationProps {
+  activeSection?: string;
+  onSectionChange?: (section: string) => void;
+}
+
+const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const navItems = [
-    { label: "Home", href: "/home" },
-    { label: "Explore", href: "/explore" },
-    { label: "About", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "Home", href: "home" },
+    { label: "Explore", href: "explore" },
+    { label: "About", href: "about" },
+    { label: "Contact", href: "contact" },
   ];
 
-  const handleNavClick = (path: string) => {
-    navigate(path);
+  const handleNavClick = (section: string) => {
+    if (onSectionChange) {
+      onSectionChange(section);
+    }
     setIsMenuOpen(false);
   };
 
@@ -35,7 +39,7 @@ const Navigation = () => {
                 key={item.label}
                 onClick={() => handleNavClick(item.href)}
                 className={`text-card-foreground hover:text-primary transition-nature font-medium pb-1 border-b-2 ${
-                  location.pathname === item.href 
+                  activeSection === item.href 
                     ? 'border-primary text-primary' 
                     : 'border-transparent'
                 }`}
@@ -50,7 +54,7 @@ const Navigation = () => {
             <Button 
               variant="hero" 
               size="sm"
-              onClick={() => handleNavClick('/login')}
+              onClick={() => handleNavClick('login')}
             >
               Login
             </Button>
@@ -76,7 +80,7 @@ const Navigation = () => {
                   key={item.label}
                   onClick={() => handleNavClick(item.href)}
                   className={`text-card-foreground hover:text-primary transition-nature font-medium px-4 py-2 text-left ${
-                    location.pathname === item.href ? 'text-primary' : ''
+                    activeSection === item.href ? 'text-primary' : ''
                   }`}
                 >
                   {item.label}
@@ -87,7 +91,7 @@ const Navigation = () => {
                   variant="hero" 
                   size="sm" 
                   className="w-full"
-                  onClick={() => handleNavClick('/login')}
+                  onClick={() => handleNavClick('login')}
                 >
                   Login
                 </Button>
