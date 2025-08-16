@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,8 @@ import type { User, Session } from '@supabase/supabase-js';
 
 type UserRole = 'producer' | 'customer' | 'transport';
 
-interface AuthSectionProps {
-  onBack: () => void;
-}
-
-export default function AuthSection({ onBack }: AuthSectionProps) {
+export default function AuthSection() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,8 +44,8 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
             title: "Welcome!",
             description: "Successfully signed in to your account.",
           });
-          // Redirect to main app or dashboard
-          onBack();
+          // Redirect to home after successful login
+          navigate('/home');
         }
       }
     );
@@ -59,7 +57,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, [toast, onBack]);
+  }, [toast, navigate]);
 
   const validateEmail = async (email: string): Promise<boolean> => {
     if (!email) return false;
@@ -233,7 +231,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   // Role selection view
   if (!selectedRole) {
     return (
-      <div className="min-h-screen bg-mountain-gradient flex items-center justify-center p-4">
+      <div className="min-h-screen bg-mountain-gradient flex items-center justify-center p-4 pt-20"> {/* Account for navbar */}
         <Card className="w-full max-w-4xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Choose Your Role</CardTitle>
@@ -262,7 +260,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
               ))}
             </div>
             <div className="flex justify-center mt-8">
-              <Button variant="outline" onClick={onBack}>
+              <Button variant="outline" onClick={() => navigate('/')}>
                 Back to Home
               </Button>
             </div>
@@ -274,7 +272,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
 
   // Main auth form
   return (
-    <div className="min-h-screen bg-mountain-gradient flex items-center justify-center p-4">
+    <div className="min-h-screen bg-mountain-gradient flex items-center justify-center p-4 pt-20"> {/* Account for navbar */}
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">

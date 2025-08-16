@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const ExploreSection = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-accent py-20">
+    <div className="min-h-screen bg-gradient-to-br from-background to-accent py-20 pt-24"> {/* Account for navbar on standalone page */}
       <div className="container mx-auto px-4 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}

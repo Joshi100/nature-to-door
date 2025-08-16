@@ -1,27 +1,23 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/ui/logo";
 import { Menu, X } from "lucide-react";
 
-interface NavigationProps {
-  activeSection?: string;
-  onSectionChange?: (section: string) => void;
-}
-
-const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationProps) => {
+const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navItems = [
-    { label: "Home", href: "home" },
-    { label: "Explore", href: "explore" },
-    { label: "About", href: "about" },
-    { label: "Contact", href: "contact" },
+    { label: "Home", href: "/home" },
+    { label: "Explore", href: "/explore" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
   ];
 
-  const handleNavClick = (section: string) => {
-    if (onSectionChange) {
-      onSectionChange(section);
-    }
+  const handleNavClick = (path: string) => {
+    navigate(path);
     setIsMenuOpen(false);
   };
 
@@ -39,7 +35,7 @@ const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationPr
                 key={item.label}
                 onClick={() => handleNavClick(item.href)}
                 className={`text-card-foreground hover:text-primary transition-nature font-medium pb-1 border-b-2 ${
-                  activeSection === item.href 
+                  location.pathname === item.href 
                     ? 'border-primary text-primary' 
                     : 'border-transparent'
                 }`}
@@ -54,7 +50,7 @@ const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationPr
             <Button 
               variant="hero" 
               size="sm"
-              onClick={() => handleNavClick('login')}
+              onClick={() => handleNavClick('/login')}
             >
               Login
             </Button>
@@ -80,7 +76,7 @@ const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationPr
                   key={item.label}
                   onClick={() => handleNavClick(item.href)}
                   className={`text-card-foreground hover:text-primary transition-nature font-medium px-4 py-2 text-left ${
-                    activeSection === item.href ? 'text-primary' : ''
+                    location.pathname === item.href ? 'text-primary' : ''
                   }`}
                 >
                   {item.label}
@@ -91,7 +87,7 @@ const Navigation = ({ activeSection = "landing", onSectionChange }: NavigationPr
                   variant="hero" 
                   size="sm" 
                   className="w-full"
-                  onClick={() => handleNavClick('login')}
+                  onClick={() => handleNavClick('/login')}
                 >
                   Login
                 </Button>
