@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { EmailInput } from "@/components/ui/email-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sprout, ShoppingBag, Truck, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Sprout, ShoppingBag, Truck, Eye, EyeOff, Loader2, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailValidation } from "@/hooks/useEmailValidation";
 import type { User, Session } from '@supabase/supabase-js';
@@ -24,6 +24,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [signupMethod, setSignupMethod] = useState<'phone' | 'email'>('phone');
   
   // Enhanced email validation
   const { 
@@ -39,6 +40,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   });
@@ -92,6 +94,43 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
       return;
     }
 
+    // Validate based on signup method
+    if (signupMethod === 'email') {
+      if (!formData.email) {
+        toast({
+          title: "Email Required",
+          description: "Please enter your email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (isEmailInvalid) {
+        toast({
+          title: "Invalid Email",
+          description: validationResult?.message || "Please enter a valid, existing email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (signupMethod === 'phone') {
+      if (!formData.phone) {
+        toast({
+          title: "Phone Required",
+          description: "Please enter your phone number.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone)) {
+        toast({
+          title: "Invalid Phone",
+          description: "Please enter a valid phone number.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -101,37 +140,42 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
       return;
     }
 
-    // Check email validation status
-    if (isEmailInvalid) {
-      toast({
-        title: "Invalid Email",
-        description: validationResult?.message || "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            role: selectedRole
+      const authData = signupMethod === 'phone' 
+        ? {
+            phone: formData.phone,
+            password: formData.password,
+            options: {
+              data: {
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                role: selectedRole
+              }
+            }
           }
-        }
-      });
+        : {
+            email: formData.email,
+            password: formData.password,
+            options: {
+              emailRedirectTo: redirectUrl,
+              data: {
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                role: selectedRole
+              }
+            }
+          };
+
+      const { error } = await supabase.auth.signUp(authData);
 
       if (error) {
         if (error.message.includes('User already registered')) {
           toast({
             title: "Account Exists",
-            description: "An account with this email already exists. Please sign in instead.",
+            description: `An account with this ${signupMethod} already exists. Please sign in instead.`,
             variant: "destructive",
           });
         } else {
@@ -144,7 +188,9 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
       } else {
         toast({
           title: "Account Created Successfully!",
-          description: "You can now sign in with your credentials.",
+          description: signupMethod === 'phone' 
+            ? "Please check your phone for verification code." 
+            : "You can now sign in with your credentials.",
         });
         // Switch to sign in mode after successful signup
         setIsSignup(false);
@@ -173,10 +219,15 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
+      // Support both email and phone signin
+      const identifier = formData.email || formData.phone;
+      const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(identifier);
+      
+      const { error } = await supabase.auth.signInWithPassword(
+        isPhone 
+          ? { phone: identifier, password: formData.password }
+          : { email: identifier, password: formData.password }
+      );
 
       if (error) {
         toast({
@@ -310,22 +361,85 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
               </>
             )}
 
-            <div>
-              <Label htmlFor="email" className="text-sm">Email</Label>
-              <EmailInput
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleEmailChange}
-                onBlur={(e) => validateEmail(e.target.value)}
-                validationStatus={validationStatus}
-                validationMessage={validationResult?.message}
-                required
-                disabled={isLoading}
-                className="mt-1"
-                placeholder="Enter your email address"
-              />
-            </div>
+            {isSignup && (
+              <div className="space-y-3">
+                <Label className="text-sm">Sign up with</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={signupMethod === 'phone' ? 'default' : 'outline'}
+                    onClick={() => setSignupMethod('phone')}
+                    className="flex-1 flex items-center gap-2 text-xs sm:text-sm"
+                  >
+                    <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Phone Number
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={signupMethod === 'email' ? 'default' : 'outline'}
+                    onClick={() => setSignupMethod('email')}
+                    className="flex-1 flex items-center gap-2 text-xs sm:text-sm"
+                  >
+                    <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Email
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {(isSignup && signupMethod === 'phone') || (!isSignup) ? (
+              <div>
+                <Label htmlFor="phone" className="text-sm">
+                  {isSignup ? 'Phone Number' : 'Phone Number or Email'}
+                </Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone || formData.email}
+                  onChange={(e) => {
+                    if (isSignup) {
+                      setFormData(prev => ({ ...prev, phone: e.target.value }));
+                    } else {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        phone: e.target.value,
+                        email: e.target.value 
+                      }));
+                    }
+                  }}
+                  required
+                  disabled={isLoading}
+                  className="mt-1"
+                  placeholder={isSignup ? "Enter your phone number" : "Enter phone number or email"}
+                />
+                {isSignup && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Recommended for Himalayan producers. We'll send a verification code.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="email" className="text-sm">Email</Label>
+                <EmailInput
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleEmailChange}
+                  onBlur={(e) => validateEmail(e.target.value)}
+                  validationStatus={validationStatus}
+                  validationMessage={validationResult?.message}
+                  required
+                  disabled={isLoading}
+                  className="mt-1"
+                  placeholder="Enter your email address"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  We'll verify this is a real, active email address.
+                </p>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="password" className="text-sm">Password</Label>
@@ -380,7 +494,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
             <Button
               type="submit"
               className="w-full text-sm sm:text-base"
-              disabled={isLoading || isEmailValidating || (isSignup && isEmailInvalid)}
+              disabled={isLoading || isEmailValidating || (isSignup && signupMethod === 'email' && isEmailInvalid)}
             >
               {isLoading ? (
                 <>

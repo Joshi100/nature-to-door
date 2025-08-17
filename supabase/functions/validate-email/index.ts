@@ -46,13 +46,13 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use ZeroBounce API for email validation (you can replace with other providers)
+    // Use AbstractAPI for real email verification
     const apiKey = Deno.env.get('EMAIL_VALIDATION_API_KEY');
     
     if (!apiKey) {
       console.log('Email validation API key not configured, skipping validation');
       return new Response(
-        JSON.stringify({ isValid: true, message: 'Email validation skipped - API key not configured' }),
+        JSON.stringify({ isValid: true, message: 'Email format valid - real verification skipped' }),
         {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -60,41 +60,39 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Example using ZeroBounce API (replace with your preferred provider)
-    const validationUrl = `https://api.zerobounce.net/v2/validate?api_key=${apiKey}&email=${encodeURIComponent(email)}`;
+    // Use AbstractAPI Email Validation for real email existence checking
+    const validationUrl = `https://emailvalidation.abstractapi.com/v1/?api_key=${apiKey}&email=${encodeURIComponent(email)}`;
     
     const response = await fetch(validationUrl);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
     const validationResult = await response.json();
-
     console.log('Email validation result:', validationResult);
 
-    // ZeroBounce response statuses: valid, invalid, catch-all, unknown, spamtrap, abuse, do_not_mail
-    const isValid = validationResult.status === 'valid';
+    // AbstractAPI response analysis
+    const isValidFormat = validationResult.is_valid_format?.value || false;
+    const isDeliverable = validationResult.deliverability === 'DELIVERABLE';
+    const isValidSmtp = validationResult.is_smtp_valid?.value || false;
+    
+    // Real email exists if it's deliverable and SMTP valid
+    const isValid = isValidFormat && isDeliverable && isValidSmtp;
     
     let message = '';
     if (!isValid) {
-      switch (validationResult.status) {
-        case 'invalid':
-          message = 'This email address is invalid';
-          break;
-        case 'catch-all':
-          message = 'This email domain accepts all emails - verification uncertain';
-          break;
-        case 'unknown':
-          message = 'Email verification status unknown';
-          break;
-        case 'spamtrap':
-          message = 'This email is identified as a spam trap';
-          break;
-        case 'abuse':
-          message = 'This email is associated with abuse';
-          break;
-        case 'do_not_mail':
-          message = 'This email should not be used for mailing';
-          break;
-        default:
-          message = 'Email validation failed';
+      if (!isValidFormat) {
+        message = 'Invalid email format';
+      } else if (!isDeliverable) {
+        message = 'This email address does not exist or is not deliverable';
+      } else if (!isValidSmtp) {
+        message = 'This email server does not accept emails';
+      } else {
+        message = 'Email verification failed';
       }
+    } else {
+      message = 'Email verified - this is a real, active email address';
     }
 
     return new Response(
