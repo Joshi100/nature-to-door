@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmailInput } from "@/components/ui/email-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sprout, ShoppingBag, Truck, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEmailValidation } from "@/hooks/useEmailValidation";
 import type { User, Session } from '@supabase/supabase-js';
 
 type UserRole = 'producer' | 'customer' | 'transport';
@@ -22,7 +24,16 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [emailValidating, setEmailValidating] = useState(false);
+  
+  // Enhanced email validation
+  const { 
+    validationStatus, 
+    validationResult, 
+    validateEmail, 
+    isValid: isEmailValid, 
+    isInvalid: isEmailInvalid,
+    isValidating: isEmailValidating 
+  } = useEmailValidation();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -61,36 +72,13 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     return () => subscription.unsubscribe();
   }, [toast, onBack]);
 
-  const validateEmail = async (email: string): Promise<boolean> => {
-    if (!email) return false;
+  // Handle email input changes with real-time validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setFormData(prev => ({ ...prev, email }));
     
-    setEmailValidating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('validate-email', {
-        body: { email }
-      });
-
-      if (error) {
-        console.error('Email validation error:', error);
-        return true; // Allow signup if validation service fails
-      }
-
-      if (!data.isValid && data.message) {
-        toast({
-          title: "Invalid Email",
-          description: data.message,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Email validation error:', error);
-      return true; // Allow signup if validation service fails
-    } finally {
-      setEmailValidating(false);
-    }
+    // Trigger real-time validation
+    validateEmail(email);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -113,9 +101,15 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
       return;
     }
 
-    // Validate email before signup
-    const isEmailValid = await validateEmail(formData.email);
-    if (!isEmailValid) return;
+    // Check email validation status
+    if (isEmailInvalid) {
+      toast({
+        title: "Invalid Email",
+        description: validationResult?.message || "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -125,7 +119,6 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -150,9 +143,11 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
         }
       } else {
         toast({
-          title: "Check Your Email",
-          description: "We've sent you a confirmation link. Please check your email to complete signup.",
+          title: "Account Created Successfully!",
+          description: "You can now sign in with your credentials.",
         });
+        // Switch to sign in mode after successful signup
+        setIsSignup(false);
       }
     } catch (error: any) {
       toast({
@@ -317,22 +312,19 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
 
             <div>
               <Label htmlFor="email" className="text-sm">Email</Label>
-              <Input
+              <EmailInput
                 id="email"
                 name="email"
-                type="email"
                 value={formData.email}
-                onChange={handleInputChange}
+                onChange={handleEmailChange}
+                onBlur={(e) => validateEmail(e.target.value)}
+                validationStatus={validationStatus}
+                validationMessage={validationResult?.message}
                 required
-                disabled={emailValidating}
+                disabled={isLoading}
                 className="mt-1"
+                placeholder="Enter your email address"
               />
-              {emailValidating && (
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                  Validating email...
-                </p>
-              )}
             </div>
 
             <div>
@@ -388,7 +380,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
             <Button
               type="submit"
               className="w-full text-sm sm:text-base"
-              disabled={isLoading || emailValidating}
+              disabled={isLoading || isEmailValidating || (isSignup && isEmailInvalid)}
             >
               {isLoading ? (
                 <>
