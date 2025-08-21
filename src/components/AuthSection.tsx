@@ -29,6 +29,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [pendingEmailSignup, setPendingEmailSignup] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
   
   // Enhanced email validation
   const { 
@@ -171,54 +172,84 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      if (signupMethod === 'phone') {
-        // Send OTP to phone number for verification first
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: formData.phone,
-        });
-
-        if (error) {
-          toast({
-            title: "OTP Send Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "OTP Sent!",
-            description: "Please check your phone for the verification code.",
-          });
-          setOtpStep(true);
-        }
-      } else {
-        // Email signup - send OTP first
-        const { error } = await supabase.auth.signInWithOtp({
+      if (otpVerified) {
+        // OTP already verified, now create the actual account
+        const redirectUrl = `${window.location.origin}/`;
+        const { error } = await supabase.auth.signUp({
           email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              role: selectedRole,
+              phone: signupMethod === 'phone' ? formData.phone : undefined
+            }
+          }
         });
 
         if (error) {
           if (error.message.includes('User already registered')) {
             toast({
               title: "Account Exists",
-              description: `An account with this ${signupMethod} already exists. Please sign in instead.`,
+              description: "An account with these credentials already exists. Please sign in instead.",
               variant: "destructive",
             });
           } else {
             toast({
-              title: "OTP Send Failed",
+              title: "Account Creation Failed",
               description: error.message,
               variant: "destructive",
             });
           }
         } else {
           toast({
-            title: "OTP Sent!",
-            description: "Please check your email for the verification code.",
+            title: "Account Created Successfully!",
+            description: "You can now sign in with your credentials.",
           });
-          setPendingEmailSignup(true);
-          setOtpStep(true);
+          setOtpVerified(false);
+          setIsSignup(false);
+        }
+      } else {
+        // Send OTP for verification first
+        if (signupMethod === 'phone') {
+          const { error } = await supabase.auth.signInWithOtp({
+            phone: formData.phone,
+          });
+
+          if (error) {
+            toast({
+              title: "OTP Send Failed",
+              description: error.message,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "OTP Sent!",
+              description: "Please check your phone for the verification code.",
+            });
+            setOtpStep(true);
+          }
+        } else {
+          const { error } = await supabase.auth.signInWithOtp({
+            email: formData.email,
+          });
+
+          if (error) {
+            toast({
+              title: "OTP Send Failed", 
+              description: error.message,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "OTP Sent!",
+              description: "Please check your email for the verification code.",
+            });
+            setPendingEmailSignup(true);
+            setOtpStep(true);
+          }
         }
       }
     } catch (error: any) {
@@ -246,7 +277,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     setIsLoading(true);
     try {
       if (signupMethod === 'phone') {
-        // Verify OTP and complete phone signup
+        // Verify OTP for phone - just verification, no signup yet
         const { error } = await supabase.auth.verifyOtp({
           phone: formData.phone,
           token: otp,
@@ -262,12 +293,14 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
         } else {
           toast({
             title: "Phone Verified!",
-            description: "Your account has been created successfully.",
+            description: "Now create your account with email and password.",
           });
-          // User will be automatically signed in after successful OTP verification
+          setOtpVerified(true);
+          setOtpStep(false);
+          // Don't sign in automatically, proceed to signup form
         }
       } else if (signupMethod === 'email' && pendingEmailSignup) {
-        // Verify OTP and complete email signup
+        // Verify OTP for email - just verification, no signup yet
         const { error } = await supabase.auth.verifyOtp({
           email: formData.email,
           token: otp,
@@ -281,36 +314,14 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
             variant: "destructive",
           });
         } else {
-          // Now create the actual account with password
-          const redirectUrl = `${window.location.origin}/`;
-          const { error: signupError } = await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-            options: {
-              emailRedirectTo: redirectUrl,
-              data: {
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                role: selectedRole
-              }
-            }
+          toast({
+            title: "Email Verified!",
+            description: "Now complete your account creation.",
           });
-
-          if (signupError) {
-            toast({
-              title: "Account Creation Failed",
-              description: signupError.message,
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Email Verified & Account Created!",
-              description: "You can now sign in with your credentials.",
-            });
-            setOtpStep(false);
-            setPendingEmailSignup(false);
-            setIsSignup(false);
-          }
+          setOtpVerified(true);
+          setOtpStep(false);
+          setPendingEmailSignup(false);
+          // Don't sign in automatically, proceed to signup form
         }
       }
     } catch (error: any) {
@@ -498,7 +509,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                     Verifying...
                   </>
                 ) : (
-                  'Verify & Create Account'
+                  'Verify Code'
                 )}
               </Button>
 
@@ -737,10 +748,10 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
               {isLoading ? (
                 <>
                   <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
-                  {isSignup ? 'Creating Account...' : 'Signing In...'}
+                  {isSignup ? (otpVerified ? 'Creating Account...' : 'Sending Verification...') : 'Signing In...'}
                 </>
               ) : (
-                isSignup ? 'Create Account' : 'Sign In'
+                isSignup ? (otpVerified ? 'Complete Account Creation' : 'Send Verification Code') : 'Sign In'
               )}
             </Button>
 
