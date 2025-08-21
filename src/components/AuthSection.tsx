@@ -25,6 +25,8 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signupMethod, setSignupMethod] = useState<'phone' | 'email'>('phone');
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState('');
   
   // Enhanced email validation
   const { 
@@ -50,11 +52,36 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user && event === 'SIGNED_IN') {
+          // For phone OTP users, create profile if it doesn't exist
+          if (otpStep && signupMethod === 'phone') {
+            try {
+              const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .single();
+
+              if (!existingProfile) {
+                // Create profile for phone user
+                await supabase.from('profiles').insert({
+                  user_id: session.user.id,
+                  email: session.user.email,
+                  first_name: formData.firstName,
+                  last_name: formData.lastName,
+                  role: selectedRole,
+                  phone: formData.phone
+                });
+              }
+            } catch (error) {
+              console.error('Profile creation error:', error);
+            }
+          }
+
           toast({
             title: "Welcome!",
             description: "Successfully signed in to your account.",
@@ -72,7 +99,7 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, [toast, onBack]);
+  }, [toast, onBack, otpStep, signupMethod, formData.firstName, formData.lastName, formData.phone, selectedRole]);
 
   // Handle email input changes with real-time validation
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,56 +171,61 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const authData = signupMethod === 'phone' 
-        ? {
-            phone: formData.phone,
-            password: formData.password,
-            options: {
-              data: {
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                role: selectedRole
-              }
-            }
-          }
-        : {
-            email: formData.email,
-            password: formData.password,
-            options: {
-              emailRedirectTo: redirectUrl,
-              data: {
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                role: selectedRole
-              }
-            }
-          };
+      if (signupMethod === 'phone') {
+        // Send OTP to phone number for verification first
+        const { error } = await supabase.auth.signInWithOtp({
+          phone: formData.phone,
+        });
 
-      const { error } = await supabase.auth.signUp(authData);
-
-      if (error) {
-        if (error.message.includes('User already registered')) {
+        if (error) {
           toast({
-            title: "Account Exists",
-            description: `An account with this ${signupMethod} already exists. Please sign in instead.`,
+            title: "OTP Send Failed",
+            description: error.message,
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Signup Failed",
-            description: error.message,
-            variant: "destructive",
+            title: "OTP Sent!",
+            description: "Please check your phone for the verification code.",
           });
+          setOtpStep(true);
         }
       } else {
-        toast({
-          title: "Account Created Successfully!",
-          description: signupMethod === 'phone' 
-            ? "Please check your phone for verification code." 
-            : "You can now sign in with your credentials.",
+        // Email signup (existing flow)
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              role: selectedRole
+            }
+          }
         });
-        // Switch to sign in mode after successful signup
-        setIsSignup(false);
+
+        if (error) {
+          if (error.message.includes('User already registered')) {
+            toast({
+              title: "Account Exists",
+              description: `An account with this ${signupMethod} already exists. Please sign in instead.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Signup Failed",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Account Created Successfully!",
+            description: "You can now sign in with your credentials.",
+          });
+          setIsSignup(false);
+        }
       }
     } catch (error: any) {
       toast({
@@ -204,6 +236,55 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOtpVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp || otp.length < 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter the complete 6-digit verification code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Verify OTP and complete signup
+      const { error } = await supabase.auth.verifyOtp({
+        phone: formData.phone,
+        token: otp,
+        type: 'sms'
+      });
+
+      if (error) {
+        toast({
+          title: "Verification Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Phone Verified!",
+          description: "Your account has been created successfully.",
+        });
+        // User will be automatically signed in after successful OTP verification
+      }
+    } catch (error: any) {
+      toast({
+        title: "Verification Error",
+        description: error.message || "An unexpected error occurred during verification.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToPhone = () => {
+    setOtpStep(false);
+    setOtp('');
   };
 
   const handleSignin = async (e: React.FormEvent) => {
@@ -307,6 +388,99 @@ export default function AuthSection({ onBack }: AuthSectionProps) {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // OTP verification view
+  if (otpStep && isSignup && signupMethod === 'phone') {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-mountain-gradient flex items-center justify-center p-4 py-8">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="text-center px-4 sm:px-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Phone className="w-6 h-6" />
+            </div>
+            <CardTitle className="text-xl sm:text-2xl font-bold">
+              Verify Your Phone Number
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Enter the 6-digit code sent to {formData.phone}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-6">
+            <form onSubmit={handleOtpVerification} className="space-y-4">
+              <div>
+                <Label htmlFor="otp" className="text-sm">Verification Code</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  required
+                  disabled={isLoading}
+                  className="mt-1 text-center text-lg tracking-widest"
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                className="w-full text-sm sm:text-base"
+                disabled={isLoading || otp.length !== 6}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify & Create Account'
+                )}
+              </Button>
+
+              <div className="text-center space-y-2">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleBackToPhone}
+                  disabled={isLoading}
+                  className="text-xs sm:text-sm"
+                >
+                  ← Back to Phone Number
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => {
+                    setIsLoading(true);
+                    supabase.auth.signInWithOtp({ phone: formData.phone })
+                      .then(() => {
+                        toast({
+                          title: "Code Resent",
+                          description: "A new verification code has been sent to your phone.",
+                        });
+                      })
+                      .catch((error) => {
+                        toast({
+                          title: "Resend Failed",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      })
+                      .finally(() => setIsLoading(false));
+                  }}
+                  disabled={isLoading}
+                  className="text-xs sm:text-sm"
+                >
+                  Resend Code
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>
